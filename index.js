@@ -65,9 +65,13 @@ async function run() {
         switch (config.type) {
             case "comment": {
                 const octokit = github.getOctokit(config.repoToken);
+                const labelName = github.context.payload.label.name;
 
-                switch (github.context.payload.label.name) {
+                core.info(`label name is ${labelName}`);
+
+                switch (labelName) {
                     case config.templateNotUsedLabel:
+                        config.info("label is template-not-used-label");
                         await octokit.issues.createComment({
                             ...github.context.issue,
                             body: await interpolateValues(
@@ -77,6 +81,7 @@ async function run() {
                         break;
 
                     case config.doesntFollowTemplateLabel:
+                        config.info("label is doesnt-follow-template-label");
                         await octokit.issues.createComment({
                             ...github.context.issue,
                             body: await interpolateValues(
