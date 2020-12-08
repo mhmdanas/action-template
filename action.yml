@@ -1,4 +1,4 @@
-name: "Template Action"
+name: "Issue Template Action"
 description: "Handle issues and PRs that don't follow templates"
 
 inputs:
