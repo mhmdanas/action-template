@@ -18,7 +18,8 @@ inputs:
 
   template-not-used-label:
     description: "The label added to issues or PRs that either remove the template completely or are opened from a somewhere else than the GitHub website (e.g. third-party client) and so don't show templates."
-    required: true
+    required: false
+    default: "template-not-used"
 
   template-not-used-comment-body:
     description: "The body of the comment that is made when an issue or PR is labeled with `template-not-used-label`."
@@ -27,7 +28,8 @@ inputs:
 
   doesnt-follow-template-label:
     description: "The label added to issues or PRs that don't follow the template's instructions properly."
-    required: true
+    required: false
+    default: "doesnt-follow-template"
 
   doesnt-follow-template-comment-body:
     description: "The body of the comment that is made when an issue or PR is labeled with `doesnt-follow-template-label`."
