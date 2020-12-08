@@ -102,6 +102,7 @@ async function run() {
         }
     } catch (e) {
         core.error(e);
+        core.error(e.stack);
         core.setFailed(e.message);
     }
 }
