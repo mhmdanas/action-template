@@ -3,7 +3,7 @@ const github = require("@actions/github");
 const IssueProcessor = require("./src/IssueProcessor");
 
 // TODO: validate config
-async function getConfig() {
+function getConfig() {
     const type = core.getInput("type");
 
     const repoToken = core.getInput("repo-token", { required: true });
