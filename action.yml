@@ -1,0 +1,41 @@
+name: "Template Action"
+description: "Handle issues and PRs that don't follow templates"
+
+inputs:
+  repo-token:
+    description: "Repository token. Should be passed using `{{ secrets.GITHUB_TOKEN }}`."
+    required: true
+
+  type:
+    description: "Should we comment on an issue or PR that doesn't follow a template (`comment`), or close all issues and PRs which were not edited in time (`close`)?"
+    required: false
+    default: "comment"
+
+  days-until-close:
+    description: "Days before an issue or PR that doesn't follow a template is removed."
+    required: false
+    default: 7
+
+  template-not-used-label:
+    description: "The label added to issues or PRs that either remove the template completely or are opened from a somewhere else than the GitHub website (e.g. third-party client) and so don't show templates."
+    required: true
+
+  template-not-used-comment-body:
+    description: "The body of the comment that is made when an issue or PR is labeled with `template-not-used-label`."
+    required: false
+    default: "Hi @{authorLogin}! Thank you for opening an issue! Please choose the appropriate template at the bottom of this comment and edit your issue to follow it properly and then make a comment that you edited the issue. If you do not edit your comment to follow a template properly in {daysUntilClose}, this issue will be closed. Thanks!"
+
+  doesnt-follow-template-label:
+    description: "The label added to issues or PRs that don't follow the template's instructions properly."
+    required: true
+
+  doesnt-follow-template-comment-body:
+    description: "The body of the comment that is made when an issue or PR is labeled with `doesnt-follow-template-label`."
+    required: false
+    default: "Hi @{authorLogin}! Thank you for opening an issue! Unfortunately, it seems like you didn't follow the template's instructions properly. Please edit your issue to follow all of the template's instructions properly and then make a comment that you edited the issue to follow the template proerly. If you do not edit your comment to follow the template's instructions properly in {daysUntilClose}, this issue will be closed. Thanks!"
+
+outputs:
+
+runs:
+  using: "node12"
+  main: "dist/index.js"
