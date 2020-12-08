@@ -1,7 +1,7 @@
 {
   "name": "action-template",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "GitHub Action to handle issues and PRs that don't follow a template.",
   "main": "index.js",
   "scripts": {},
