@@ -34,8 +34,6 @@ inputs:
     required: false
     default: "Hi @{authorLogin}! Thank you for opening an issue! Unfortunately, it seems like you didn't follow the template's instructions properly. Please edit your issue to follow all of the template's instructions properly and then make a comment that you edited the issue to follow the template proerly. If you do not edit your comment to follow the template's instructions properly in {daysUntilClose}, this issue will be closed. Thanks!"
 
-outputs:
-
 runs:
   using: "node12"
   main: "dist/index.js"
