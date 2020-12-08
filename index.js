@@ -4,6 +4,8 @@ const IssueProcessor = require("./src/IssueProcessor");
 
 // TODO: validate config
 async function getConfig() {
+    const type = core.getInput("type");
+
     const repoToken = core.getInput("repo-token", { required: true });
 
     const daysUntilClose = core.getInput("days-until-close");
