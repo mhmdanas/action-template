@@ -76,7 +76,7 @@ async function run() {
                         });
                         break;
 
-                    case config.doesntFollowTemplateCommentBody:
+                    case config.doesntFollowTemplateLabel:
                         await octokit.issues.createComment({
                             ...github.context.issue,
                             body: await interpolateValues(
