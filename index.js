@@ -40,13 +40,14 @@ async function run() {
 
         core.info(config);
 
+        const context = github.context;
+
         const issue = {
             ...context.repo,
             issue_number: context.issue.number,
         };
 
         async function interpolateValues(string) {
-            const context = github.context;
             const octokit = github.getOctokit(config.repoToken);
             core.info(`Issue is ${context.issue}`);
 
@@ -72,7 +73,7 @@ async function run() {
         switch (config.type) {
             case "comment": {
                 const octokit = github.getOctokit(config.repoToken);
-                const labelName = github.context.payload.label.name;
+                const labelName = context.payload.label.name;
 
                 core.info(`label name is ${labelName}`);
 
