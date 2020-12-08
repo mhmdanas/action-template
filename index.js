@@ -77,7 +77,8 @@ async function run() {
                         await octokit.issues.createComment({
                             ...github.context.issue,
                             body: await interpolateValues(
-                                config.templateNotUsedCommentBody
+                                config.templateNotUsedCommentBody,
+                                config
                             ),
                         });
                         break;
