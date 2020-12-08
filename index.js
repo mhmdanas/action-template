@@ -34,35 +34,40 @@ function getConfig() {
         repoToken,
     };
 }
-
-async function interpolateValues(string, config) {
-    const context = github.context;
-    const octokit = github.getOctokit(config.repoToken);
-
-    const issue = await octokit.issues.get(context.issue);
-
-    const authorLogin = issue.data.user.login;
-
-    string = string.replace("{authorLogin}", authorLogin);
-
-    let daysUntilClose = config.daysUntilClose;
-
-    if (daysUntilClose === 1) {
-        daysUntilClose = "1 day";
-    } else {
-        daysUntilClose = `${daysUntilClose} days`;
-    }
-
-    string = string.replace("{daysUntilClose}", daysUntilClose);
-
-    return string;
-}
-
 async function run() {
     try {
         const config = getConfig();
 
         core.info(config);
+
+        const issue = {
+            ...context.repo,
+            issue_number: context.issue.number,
+        };
+
+        async function interpolateValues(string) {
+            const context = github.context;
+            const octokit = github.getOctokit(config.repoToken);
+            core.info(`Issue is ${context.issue}`);
+
+            const fullIssue = await octokit.issues.get(issue);
+
+            const authorLogin = fullIssue.data.user.login;
+
+            string = string.replace("{authorLogin}", authorLogin);
+
+            let daysUntilClose = config.daysUntilClose;
+
+            if (daysUntilClose === 1) {
+                daysUntilClose = "1 day";
+            } else {
+                daysUntilClose = `${daysUntilClose} days`;
+            }
+
+            string = string.replace("{daysUntilClose}", daysUntilClose);
+
+            return string;
+        }
 
         switch (config.type) {
             case "comment": {
@@ -75,7 +80,7 @@ async function run() {
                     case config.templateNotUsedLabel:
                         core.info("label is template-not-used-label");
                         await octokit.issues.createComment({
-                            ...github.context.issue,
+                            ...issue,
                             body: await interpolateValues(
                                 config.templateNotUsedCommentBody,
                                 config
@@ -86,7 +91,7 @@ async function run() {
                     case config.doesntFollowTemplateLabel:
                         core.info("label is doesnt-follow-template-label");
                         await octokit.issues.createComment({
-                            ...github.context.issue,
+                            ...issue,
                             body: await interpolateValues(
                                 config.doesntFollowTemplateCommentBody
                             ),
