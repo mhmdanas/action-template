@@ -3,6 +3,12 @@ import * as github from "@actions/github";
 import "@octokit/webhooks";
 import { Config } from "../index";
 
+interface Issue {
+    owner: string;
+    repo: string;
+    issue_number: number;
+}
+
 export class IssueProcessor {
     private readonly octokit: ReturnType<typeof github.getOctokit>;
     private readonly context: typeof github.context;
@@ -41,13 +47,22 @@ export class IssueProcessor {
         }
     }
 
-    async processIssues(labelName: string) {
-        core.info("In IssueProcessor#processIssues");
+    async processIssue(issue: Issue, labelName: string) {
+        let page = 1;
 
-        for await (const issue of this.getIssues(labelName)) {
-            const events = (await this.octokit.issues.listEvents(issue)).data;
+        while (true) {
+            const events = (
+                await this.octokit.issues.listEvents({
+                    ...issue,
+                    per_page: 30,
+                    page,
+                })
+            ).data;
+
+            if (events.length === 0) break;
 
             let labeledEvent;
+
             for (let i = events.length - 1; i >= 0; i--) {
                 const event = events[i];
 
@@ -74,6 +89,16 @@ export class IssueProcessor {
             ) {
                 await this.octokit.issues.update({ ...issue, state: "closed" });
             }
+
+            page++;
+        }
+    }
+
+    async processIssues(labelName: string) {
+        core.info("In IssueProcessor#processIssues");
+
+        for await (const issue of this.getIssues(labelName)) {
+            await this.processIssue(issue, labelName);
         }
     }
 
