@@ -39,7 +39,7 @@ module.exports = class IssueProcessor {
             const events = (await this.octokit.issues.listEvents(issue)).data;
 
             let labeledEvent;
-            for (let i = events.length - i; i >= 0; i--) {
+            for (let i = events.length - 1; i >= 0; i--) {
                 const event = events[i];
 
                 if (!event.event === "labeled") continue;
