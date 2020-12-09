@@ -39,8 +39,7 @@ export class IssueProcessor {
             if (issues.length === 0) break;
 
             yield* issues.map((issue) => ({
-                owner: issue.repository!.owner?.login!,
-                repo: issue.repository!.name,
+                ...this.context.repo,
                 issue_number: issue.number,
             }));
             page++;
