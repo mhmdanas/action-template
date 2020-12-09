@@ -53,14 +53,14 @@ module.exports = class IssueProcessor {
 
             const date = new Date(labeledEvent.created_at);
 
-            if (new Date() - date > 86400000 * config.daysUntilClose /* milliseconds */) {
-                await closeIssue(issue);
+            if (new Date() - date > 86400000 * this.config.daysUntilClose /* milliseconds */) {
+                await this.close(issue);
             }
         }
     }
 
     async process() {
-        await processIssues(await this.getIssuesNotFollowingTemplate());
-        await processIssues(await this.getIssuesWithoutTemplate());
+        await this.processIssues(this.config.doesntFollowTemplateLabel);
+        await this.processIssues(this.config.templateNotUsedLabel);
     }
 }
