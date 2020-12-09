@@ -60,7 +60,12 @@ module.exports = class IssueProcessor {
 
             const date = new Date(labeledEvent.created_at);
 
-            if (new Date() - date > 86400000 * this.config.daysUntilClose /* milliseconds */) {
+            core.info(`event date is ${date}`);
+	    const currentDate = new Date();
+
+	    core.info(`Current date is ${currentDate}`);
+
+            if (currentDate - date > 86400000 * this.config.daysUntilClose /* milliseconds */) {
                 await this.close(issue);
             }
         }
