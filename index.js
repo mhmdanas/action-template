@@ -38,8 +38,6 @@ async function run() {
     try {
         const config = getConfig();
 
-        core.info(config);
-
         const context = github.context;
 
         const issue = {
@@ -47,8 +45,9 @@ async function run() {
             issue_number: context.issue.number,
         };
 
+        const octokit = github.getOctokit(config.repoToken);
+
         async function interpolateValues(string) {
-            const octokit = github.getOctokit(config.repoToken);
             core.info(`Issue is ${context.issue}`);
 
             const fullIssue = await octokit.issues.get(issue);
@@ -72,7 +71,6 @@ async function run() {
 
         switch (config.type) {
             case "comment": {
-                const octokit = github.getOctokit(config.repoToken);
                 const labelName = context.payload.label.name;
 
                 core.info(`label name is ${labelName}`);
