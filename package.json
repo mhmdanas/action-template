@@ -1,18 +1,22 @@
 {
   "name": "action-template",
-  "private": true,
-  "version": "0.1.0",
   "description": "GitHub Action to handle issues and PRs that don't follow a template.",
-  "main": "index.js",
-  "scripts": {},
   "author": "Mohammed Anas",
   "license": "MIT",
+  "private": true,
+  "version": "0.1.0",
+  "main": "index.ts",
+  "scripts": {
+    "build": "ncc build index.ts -o dist --minify --target es2015"
+  },
   "dependencies": {
     "@actions/core": "^1.2.6",
     "@actions/github": "^4.0.0",
     "@vercel/ncc": "^0.25.1"
   },
   "devDependencies": {
-    "@octokit/webhooks": "^7.18.1"
+    "@octokit/webhooks": "^7.18.1",
+    "prettier": "2.2.1",
+    "typescript": "^4.1.2"
   }
 }

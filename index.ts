@@ -1,14 +1,34 @@
-const core = require("@actions/core");
-const github = require("@actions/github");
-const IssueProcessor = require("./src/IssueProcessor");
+import * as core from "@actions/core";
+import * as github from "@actions/github";
+import { IssueProcessor } from "./src/IssueProcessor";
+
+export interface Config {
+    type: "comment" | "close";
+    repoToken: string;
+    daysUntilClose: number;
+
+    templateNotUsedLabel: string;
+    templateNotUsedCommentBody: string;
+
+    doesntFollowTemplateLabel: string;
+    doesntFollowTemplateCommentBody: string;
+}
 
 // TODO: validate config
-function getConfig() {
+function getConfig(): Config {
     const type = core.getInput("type");
+
+    if (type !== "comment" && type !== "close") {
+        throw Error("type is not comment or close");
+    }
 
     const repoToken = core.getInput("repo-token", { required: true });
 
-    const daysUntilClose = core.getInput("days-until-close");
+    const daysUntilClose = parseInt(core.getInput("days-until-close"));
+
+    if (isNaN(daysUntilClose)) {
+        throw Error("daysUntilClose is not an integer");
+    }
 
     const templateNotUsedLabel = core.getInput("template-not-used-label");
 
@@ -47,24 +67,26 @@ async function run() {
 
         const octokit = github.getOctokit(config.repoToken);
 
-        async function interpolateValues(string) {
+        async function interpolateValues(string: string) {
             core.info(`Issue is ${context.issue}`);
 
-            const fullIssue = await octokit.issues.get(issue);
+            const fullIssue = await octokit.issues.get(issue)!;
 
-            const authorLogin = fullIssue.data.user.login;
+            const authorLogin = fullIssue.data!.user!.login;
 
             string = string.replace("{authorLogin}", authorLogin);
 
             let daysUntilClose = config.daysUntilClose;
 
+            let daysUntilCloseString: string;
+
             if (daysUntilClose === 1) {
-                daysUntilClose = "1 day";
+                daysUntilCloseString = "1 day";
             } else {
-                daysUntilClose = `${daysUntilClose} days`;
+                daysUntilCloseString = `${daysUntilClose} days`;
             }
 
-            string = string.replace("{daysUntilClose}", daysUntilClose);
+            string = string.replace("{daysUntilClose}", daysUntilCloseString);
 
             return string;
         }
@@ -81,8 +103,7 @@ async function run() {
                         await octokit.issues.createComment({
                             ...issue,
                             body: await interpolateValues(
-                                config.templateNotUsedCommentBody,
-                                config
+                                config.templateNotUsedCommentBody
                             ),
                         });
                         break;
