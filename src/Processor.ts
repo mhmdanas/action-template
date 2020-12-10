@@ -162,7 +162,7 @@ export class Processor {
 
             if (
                 currentDate.valueOf() - date.valueOf() >
-                86400000 * this.config.daysUntilClose /* milliseconds */
+                600_000/*86400000 * this.config.daysUntilClose /* milliseconds */
             ) {
                 await this.closeIssue(issue);
             }
