@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import { Processor } from "./Processor";
 
-export async function run() {
+async function run() {
     try {
         await new Processor().run();
     } catch (e) {
