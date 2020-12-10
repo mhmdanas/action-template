@@ -51,10 +51,30 @@ export class Processor {
 
     private readonly repo: Repo;
 
-    private readonly payload: Payload | undefined;
+    private readonly payload?: Payload;
+
+    constructor(config?: Config, repo?: Repo, payload?: Payload) {
+        core.info("In Processor constructor");
+        this.config = config ?? getConfig();
+
+        this.octokit = getOctokit(this.config.repoToken);
+        this.repo = repo ?? context.repo;
+
+        if (payload !== undefined) {
+            this.payload = payload;
+        } else if (this.config.type === "comment") {
+            this.payload = {
+                issue: {
+                    ...this.repo,
+                    issue_number: context.issue.number,
+                },
+                labelName: context.payload.label.name,
+            };
+        }
+    }
 
     async createComment(issue: Issue, body: string) {
-        this.octokit.issues.createComment({ ...issue, body });
+        await this.octokit.issues.createComment({ ...issue, body });
     }
 
     async getAuthorLogin(issue: Issue) {
@@ -106,26 +126,6 @@ export class Processor {
                 issue_number: issue.number,
             }));
             page++;
-        }
-    }
-
-    constructor(config?: Config, repo?: Repo, payload?: Payload) {
-        core.info("In Processor constructor");
-        this.config = config ?? getConfig();
-
-        this.octokit = getOctokit(this.config.repoToken);
-        this.repo = repo ?? context.repo;
-
-        if (payload !== undefined) {
-            this.payload = payload;
-        } else if (this.config.type === "comment") {
-            this.payload = {
-                issue: {
-                    ...this.repo,
-                    issue_number: context.issue.number,
-                },
-                labelName: context.payload.label.name,
-            };
         }
     }
 
