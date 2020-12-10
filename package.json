@@ -5,9 +5,10 @@
   "license": "MIT",
   "private": true,
   "version": "0.1.0",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "scripts": {
-    "build": "ncc build index.ts -o dist --minify --target es2015"
+    "build": "ncc build src/index.ts -o dist --minify --target es2015",
+    "test": "ava"
   },
   "dependencies": {
     "@actions/core": "^1.2.6",
@@ -16,7 +17,24 @@
   },
   "devDependencies": {
     "@octokit/webhooks": "^7.18.1",
+    "@types/sinon": "^9.0.9",
+    "ava": "^3.14.0",
+    "esm": "^3.2.25",
     "prettier": "2.2.1",
+    "sinon": "^9.2.1",
+    "ts-node": "^9.1.1",
     "typescript": "^4.1.2"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "esm",
+      "ts-node/register"
+    ],
+    "files": [
+      "test/**/*.spec.ts"
+    ]
   }
 }
