@@ -10,3 +10,5 @@ export async function run() {
         core.setFailed(e.message);
     }
 }
+
+run();
