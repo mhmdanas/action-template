@@ -152,6 +152,7 @@ export class Processor {
 
             for (let i = events.length - 1; i >= 0; i--) {
                 const event = events[i]
+                core.info(`Checking event ${event.id}`)
 
                 if (event.event !== 'labeled') continue
                 if (((event as unknown) as Event).label.name !== labelName)
