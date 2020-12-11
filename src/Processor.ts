@@ -73,14 +73,22 @@ export class Processor {
         }
     }
 
-    async createComment(issue: Issue, body: string) {
+    async createComment(issue: Issue, body: string): Promise<void> {
         await this.octokit.issues.createComment({ ...issue, body })
     }
 
-    async getAuthorLogin(issue: Issue) {
+    async getAuthorLogin(issue: Issue): Promise<string> {
         const fullIssue = (await this.octokit.issues.get({ ...issue })).data
 
-        const result = fullIssue.user!.login!
+        if (fullIssue === undefined) {
+            throw Error('fullIssue is undefined')
+        }
+
+        const result = fullIssue.user?.login
+
+        if (result === undefined) {
+            throw Error('Could not get author of issue')
+        }
 
         if (!result) {
             throw Error('Could not get author of issue')
@@ -89,11 +97,11 @@ export class Processor {
         return result
     }
 
-    async closeIssue(issue: Issue) {
+    async closeIssue(issue: Issue): Promise<void> {
         await this.octokit.issues.update({ ...issue, state: 'closed' })
     }
 
-    async getEvents(issue: Issue, page: number) {
+    async getEvents(issue: Issue, page: number): Promise<Event[]> {
         return ((
             await this.octokit.issues.listEvents({
                 ...issue,
@@ -103,7 +111,9 @@ export class Processor {
         ).data as unknown) as Event[]
     }
 
-    async *getIssues(labelName: string) {
+    async *getIssues(
+        labelName: string
+    ): AsyncGenerator<Issue, void, undefined> {
         let page = 1
 
         while (true) {
@@ -129,11 +139,11 @@ export class Processor {
         }
     }
 
-    async processIssue(issue: Issue, labelName: string) {
+    async processIssue(issue: Issue, labelName: string): Promise<void> {
         core.info('In Processor#processIssue')
         let page = 1
 
-        while (true) {
+        for (;;) {
             const events = await this.getEvents(issue, page)
 
             if (events.length === 0) break
@@ -144,7 +154,8 @@ export class Processor {
                 const event = events[i]
 
                 if (event.event !== 'labeled') continue
-                if ((event as any).label.name !== labelName) continue
+                if (((event as unknown) as Event).label.name !== labelName)
+                    continue
 
                 labeledEvent = event
                 core.info(`Found event ${event.id}`)
@@ -171,7 +182,7 @@ export class Processor {
         }
     }
 
-    async closeInvalidIssues(labelName: string) {
+    async closeInvalidIssues(labelName: string): Promise<void> {
         core.info('In Processor#closeInvalidIssues')
 
         for await (const issue of this.getIssues(labelName)) {
@@ -179,12 +190,12 @@ export class Processor {
         }
     }
 
-    async interpolateValues(string: string, issue: Issue) {
+    async interpolateValues(string: string, issue: Issue): Promise<string> {
         const authorLogin = await this.getAuthorLogin(issue)
 
         string = string.replace('{authorLogin}', authorLogin)
 
-        let daysUntilClose = this.config.daysUntilClose
+        const daysUntilClose = this.config.daysUntilClose
 
         let daysUntilCloseString: string
 
@@ -199,7 +210,7 @@ export class Processor {
         return string
     }
 
-    async run() {
+    async run(): Promise<void> {
         switch (this.config.type) {
             case 'close':
                 await this.closeInvalidIssues(
@@ -209,9 +220,15 @@ export class Processor {
                 break
 
             case 'comment': {
-                const issue = this.payload!.issue
+                if (this.payload === undefined) {
+                    throw Error(
+                        'payload should not be undefined when type is comment'
+                    )
+                }
 
-                const labelName = this.payload!.labelName
+                const issue = this.payload.issue
+
+                const labelName = this.payload.labelName
 
                 core.info(`label name is ${labelName}`)
 
