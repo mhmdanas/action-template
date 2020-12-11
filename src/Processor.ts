@@ -258,5 +258,7 @@ export class Processor {
                 break
             }
         }
+
+        core.info('Done running Processor#run')
     }
 }

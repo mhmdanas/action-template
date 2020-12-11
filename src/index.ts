@@ -8,6 +8,8 @@ async function run() {
         core.error(e)
         core.error(e.stack)
         core.setFailed(e.message)
+    } finally {
+        core.info('Done running run')
     }
 }
 
