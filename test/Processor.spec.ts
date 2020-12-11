@@ -1,44 +1,44 @@
-import test from "ava";
-import * as sinon from "sinon";
-import { Processor } from "../src/Processor";
-import { Config, Event, Issue } from "../src/types";
+import test from 'ava'
+import * as sinon from 'sinon'
+import { Processor } from '../src/Processor'
+import { Config, Event, Issue } from '../src/types'
 
 const defaultConfig = {
-    repoToken: "foo",
+    repoToken: 'foo',
     daysUntilClose: 3,
-    templateNotUsedLabel: "template-not-used",
-    templateNotUsedCommentBody: "not-used\n{authorLogin}\n{daysUntilClose}",
-    doesntFollowTemplateLabel: "doesnt-follow-template",
+    templateNotUsedLabel: 'template-not-used',
+    templateNotUsedCommentBody: 'not-used\n{authorLogin}\n{daysUntilClose}',
+    doesntFollowTemplateLabel: 'doesnt-follow-template',
     doesntFollowTemplateCommentBody:
-        "doesnt-follow\n{authorLogin}\n{daysUntilClose}",
-};
+        'doesnt-follow\n{authorLogin}\n{daysUntilClose}',
+}
 
-const defaultCommentConfig: Config = { ...defaultConfig, type: "comment" };
+const defaultCommentConfig: Config = { ...defaultConfig, type: 'comment' }
 
-const defaultCloseConfig: Config = { ...defaultConfig, type: "close" };
+const defaultCloseConfig: Config = { ...defaultConfig, type: 'close' }
 
-const repo = { owner: "foo", repo: "bar" };
+const repo = { owner: 'foo', repo: 'bar' }
 
 const getIssue = () => ({
     ...repo,
     issue_number: Math.floor(Math.random() * 100_000),
-});
+})
 
-test("does not comment anything if the issue does not have one of the labels", async (t) => {
+test('does not comment anything if the issue does not have one of the labels', async (t) => {
     const processor = new Processor(defaultCommentConfig, repo, {
         issue: getIssue(),
-        labelName: "x",
-    });
-    const mock = sinon.mock(processor);
+        labelName: 'x',
+    })
+    const mock = sinon.mock(processor)
 
-    mock.expects("closeIssue").never();
-    mock.expects("createComment").never();
+    mock.expects('closeIssue').never()
+    mock.expects('createComment').never()
 
-    await processor.run();
+    await processor.run()
 
-    mock.verify();
-    t.pass();
-});
+    mock.verify()
+    t.pass()
+})
 
 function testComment(
     title: string,
@@ -47,84 +47,84 @@ function testComment(
     config: Config = defaultCommentConfig
 ) {
     test(title, async (t) => {
-        const issue = getIssue();
+        const issue = getIssue()
         const processor = new Processor(config, repo, {
             issue,
             labelName: label,
-        });
+        })
 
-        const mock = sinon.mock(processor);
+        const mock = sinon.mock(processor)
 
-        mock.expects("getAuthorLogin")
+        mock.expects('getAuthorLogin')
             .once()
             .withExactArgs(issue)
-            .resolves("baz");
-        mock.expects("createComment")
+            .resolves('baz')
+        mock.expects('createComment')
             .once()
             .withExactArgs(issue, commentBody)
-            .resolves();
+            .resolves()
 
-        await processor.run();
+        await processor.run()
 
-        mock.verify();
-        t.pass();
-    });
+        mock.verify()
+        t.pass()
+    })
 }
 
 testComment(
-    "makes comment if issue has doesnt-follow-template",
+    'makes comment if issue has doesnt-follow-template',
     defaultCommentConfig.doesntFollowTemplateLabel,
     `doesnt-follow\nbaz\n${defaultCommentConfig.daysUntilClose} days`
-);
+)
 
 testComment(
-    "makes comment if issue has template-not-used",
+    'makes comment if issue has template-not-used',
     defaultCommentConfig.templateNotUsedLabel,
     `not-used\nbaz\n${defaultCommentConfig.daysUntilClose} days`
-);
+)
 
-test("uses singular when daysUntilClose is 1", async (t) => {
-    const issue = getIssue();
+test('uses singular when daysUntilClose is 1', async (t) => {
+    const issue = getIssue()
 
     const processor = new Processor(
         { ...defaultCommentConfig, daysUntilClose: 1 },
         repo,
         {
             issue,
-            labelName: "whatever",
+            labelName: 'whatever',
         }
-    );
+    )
 
-    const mock = sinon.mock(processor);
+    const mock = sinon.mock(processor)
 
-    mock.expects("getAuthorLogin").once().withExactArgs(issue).resolves("42");
+    mock.expects('getAuthorLogin').once().withExactArgs(issue).resolves('42')
 
-    const result = await processor.interpolateValues("{daysUntilClose}", issue);
-    mock.verify();
+    const result = await processor.interpolateValues('{daysUntilClose}', issue)
+    mock.verify()
 
-    t.is(result, "1 day");
-});
+    t.is(result, '1 day')
+})
 
 // TODO: figure out why this is failing.
 test.skip("closes all issues that still don't follow the template", async (t) => {
-    const config = defaultCloseConfig;
-    const processor = new Processor(defaultCloseConfig, repo);
+    const config = defaultCloseConfig
+    const processor = new Processor(defaultCloseConfig, repo)
 
-    const currentDate = new Date("2020-10-15T03:00:00.000Z");
+    const currentDate = new Date('2020-10-15T03:00:00.000Z')
 
-    const earlierDate = new Date(currentDate);
-    earlierDate.setDate(earlierDate.getUTCDate() - 2);
+    const earlierDate = new Date(currentDate)
+    earlierDate.setDate(earlierDate.getUTCDate() - 2)
 
-    const earliestDate = new Date(currentDate);
-    earliestDate.setDate(earliestDate.getUTCDate() - 3);
+    const earliestDate = new Date(currentDate)
+    earliestDate.setDate(earliestDate.getUTCDate() - 3)
 
-    const mock = sinon.mock(processor);
+    const mock = sinon.mock(processor)
 
-    const issues1 = [getIssue(), getIssue()];
+    const issues1 = [getIssue(), getIssue()]
     const events1: Event[][] = [
         [
             {
-                event: "labeled",
+                event: 'labeled',
                 label: { name: config.doesntFollowTemplateLabel },
                 id: 3242,
                 created_at: earliestDate.toISOString(),
@@ -132,19 +132,19 @@ test.skip("closes all issues that still don't follow the template", async (t) =>
         ],
         [
             {
-                event: "labeled",
+                event: 'labeled',
                 label: { name: config.doesntFollowTemplateLabel },
                 id: 423420,
                 created_at: earlierDate.toISOString(),
             },
         ],
-    ];
+    ]
 
-    const issues2 = [getIssue(), getIssue()];
+    const issues2 = [getIssue(), getIssue()]
     const events2: Event[][] = [
         [
             {
-                event: "labeled",
+                event: 'labeled',
                 label: { name: config.templateNotUsedLabel },
                 id: 9234,
                 created_at: earliestDate.toISOString(),
@@ -152,53 +152,53 @@ test.skip("closes all issues that still don't follow the template", async (t) =>
         ],
         [
             {
-                event: "labeled",
+                event: 'labeled',
                 label: { name: config.templateNotUsedLabel },
                 id: 89125,
                 created_at: earlierDate.toISOString(),
             },
         ],
-    ];
+    ]
 
     async function* go(issues: Issue[]) {
-        yield* issues;
+        yield* issues
     }
 
-    mock.expects("getIssues")
+    mock.expects('getIssues')
         .withExactArgs(config.templateNotUsedLabel)
         .once()
-        .returns(go(issues1));
+        .returns(go(issues1))
 
-    mock.expects("getIssues")
+    mock.expects('getIssues')
         .withExactArgs(config.doesntFollowTemplateLabel)
         .once()
-        .returns(go(issues2));
+        .returns(go(issues2))
 
     function mockGetEvents(issues: Issue[], eventss: Event[][]) {
         issues.forEach((issue, i) => {
-            const events = eventss[i];
+            const events = eventss[i]
 
-            mock.expects("getEvents")
+            mock.expects('getEvents')
                 .withExactArgs(issue, 2)
                 .once()
-                .resolves(events);
+                .resolves(events)
 
-            mock.expects("getEvents")
+            mock.expects('getEvents')
                 .withExactArgs(issue, 2)
                 .once()
-                .resolves([]);
-        });
+                .resolves([])
+        })
     }
 
-    mockGetEvents(issues1, events1);
-    mockGetEvents(issues2, events2);
+    mockGetEvents(issues1, events1)
+    mockGetEvents(issues2, events2)
 
-    mock.expects("closeIssue").withExactArgs(issues1[0]).once().resolves();
-    mock.expects("closeIssue").withExactArgs(issues2[0]).once().resolves();
+    mock.expects('closeIssue').withExactArgs(issues1[0]).once().resolves()
+    mock.expects('closeIssue').withExactArgs(issues2[0]).once().resolves()
 
-    processor.run();
+    processor.run()
 
-    mock.verify();
+    mock.verify()
 
-    t.pass();
-});
+    t.pass()
+})
