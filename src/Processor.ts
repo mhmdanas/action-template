@@ -206,6 +206,7 @@ export class Processor {
                     this.config.doesntFollowTemplateLabel
                 );
                 await this.closeInvalidIssues(this.config.templateNotUsedLabel);
+                break;
 
             case "comment": {
                 const issue = this.payload!.issue;
