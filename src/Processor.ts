@@ -319,7 +319,7 @@ export class Processor {
                         const templates = await this.getIssueTemplates()
 
                         for (const template of templates) {
-                            commentBodyTemplate += `<details><summary>${template.name}</summary>\n\`\`\`\n${template.template}\n\`\`\`\n</details>\n\n`
+                            commentBodyTemplate += `<details><summary>${template.name}</summary>\n\n\`\`\`\n${template.template}\n\`\`\`\n</details>\n\n`
                         }
 
                         commentBodyTemplate = commentBodyTemplate.trim()
