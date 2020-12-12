@@ -2,7 +2,15 @@ import * as core from '@actions/core'
 import { getOctokit } from '@actions/github'
 import { context } from '@actions/github/lib/utils'
 import '@octokit/webhooks'
-import type { Config, Event, Issue, Payload, Repo, Template } from './types'
+import type {
+    Config,
+    Event,
+    Issue,
+    Octokit,
+    Payload,
+    Repo,
+    Template,
+} from './types'
 import { getURLContent } from './utils/https'
 import * as yaml from 'js-yaml'
 
@@ -49,16 +57,24 @@ function getConfig(): Config {
 
 export class Processor {
     private readonly config: Config
-    private readonly octokit: ReturnType<typeof getOctokit>
+
+    private readonly octokit: Octokit
 
     private readonly repo: Repo
 
     private readonly payload?: Payload
 
-    constructor(config?: Config, repo?: Repo, payload?: Payload) {
+    constructor(
+        config?: Config,
+        octokit?: Octokit,
+        repo?: Repo,
+        payload?: Payload
+    ) {
         core.info('In Processor constructor')
         this.config = config ?? getConfig()
-        this.octokit = getOctokit(this.config.repoToken)
+
+        this.octokit = octokit ?? getOctokit(this.config.repoToken)
+
         this.repo = repo ?? context.repo
 
         if (payload !== undefined) {

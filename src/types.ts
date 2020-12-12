@@ -1,3 +1,5 @@
+import { getOctokit } from '@actions/github'
+
 export interface Config {
     type: 'comment' | 'close'
     repoToken: string
@@ -37,3 +39,5 @@ export interface Payload {
     issue: Issue
     labelName: string
 }
+
+export type Octokit = ReturnType<typeof getOctokit>

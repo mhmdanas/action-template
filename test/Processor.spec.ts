@@ -24,11 +24,19 @@ const getIssue = () => ({
     issue_number: Math.floor(Math.random() * 100_000),
 })
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const octokitPlaceholder = {} as any
+
 test('does not comment anything if the issue does not have one of the labels', async (t) => {
-    const processor = new Processor(defaultCommentConfig, repo, {
-        issue: getIssue(),
-        labelName: 'x',
-    })
+    const processor = new Processor(
+        defaultCommentConfig,
+        octokitPlaceholder,
+        repo,
+        {
+            issue: getIssue(),
+            labelName: 'x',
+        }
+    )
     const mock = sinon.mock(processor)
 
     mock.expects('closeIssue').never()
@@ -44,11 +52,12 @@ function testComment(
     title: string,
     label: string,
     commentBody: string,
+    f?: (mock: sinon.SinonMock) => void,
     config: Config = defaultCommentConfig
 ) {
     test(title, async (t) => {
         const issue = getIssue()
-        const processor = new Processor(config, repo, {
+        const processor = new Processor(config, octokitPlaceholder, repo, {
             issue,
             labelName: label,
         })
@@ -63,6 +72,8 @@ function testComment(
             .once()
             .withExactArgs(issue, commentBody)
             .resolves()
+
+        f?.(mock)
 
         await processor.run()
 
@@ -80,7 +91,17 @@ testComment(
 testComment(
     'makes comment if issue has template-not-used',
     defaultCommentConfig.templateNotUsedLabel,
-    `not-used\nbaz\n${defaultCommentConfig.daysUntilClose} days`
+    `not-used\nbaz\n${defaultCommentConfig.daysUntilClose} days\n<details><summary>Foo</summary>\n\n\`\`\`\nBar\n\`\`\`\n</details>`,
+    (mock) => {
+        mock.expects('getIssueTemplates')
+            .once()
+            .resolves([
+                {
+                    name: 'Foo',
+                    template: 'Bar',
+                },
+            ])
+    }
 )
 
 test('uses singular when daysUntilClose is 1', async (t) => {
@@ -88,6 +109,7 @@ test('uses singular when daysUntilClose is 1', async (t) => {
 
     const processor = new Processor(
         { ...defaultCommentConfig, daysUntilClose: 1 },
+        octokitPlaceholder,
         repo,
         {
             issue,
@@ -108,7 +130,11 @@ test('uses singular when daysUntilClose is 1', async (t) => {
 // TODO: figure out why this is failing.
 test.skip("closes all issues that still don't follow the template", async (t) => {
     const config = defaultCloseConfig
-    const processor = new Processor(defaultCloseConfig, repo)
+    const processor = new Processor(
+        defaultCloseConfig,
+        octokitPlaceholder,
+        repo
+    )
 
     const currentDate = new Date('2020-10-15T03:00:00.000Z')
 
