@@ -10,6 +10,11 @@ export interface Config {
     doesntFollowTemplateCommentBody: string
 }
 
+export interface Template {
+    template: string
+    name: string
+}
+
 export interface Issue {
     owner: string
     repo: string
