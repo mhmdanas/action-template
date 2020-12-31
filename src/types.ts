@@ -23,6 +23,11 @@ export interface Issue {
     issue_number: number
 }
 
+export interface Comment {
+    body?: string
+    user: { login: string } | null
+}
+
 export interface Event {
     event: string
     label: { name: string }

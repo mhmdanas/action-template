@@ -73,6 +73,8 @@ function testComment(
             .withExactArgs(issue, commentBody)
             .resolves()
 
+        mock.expects('listComments').once().withExactArgs(issue, 1).resolves([])
+
         f?.(mock)
 
         await processor.run()
@@ -85,13 +87,80 @@ function testComment(
 testComment(
     'makes comment if issue has doesnt-follow-template',
     defaultCommentConfig.doesntFollowTemplateLabel,
-    `doesnt-follow\nbaz\n${defaultCommentConfig.daysUntilClose} days`
+    `doesnt-follow\nbaz\n${defaultCommentConfig.daysUntilClose} days\n\n<!--action-template-->`
 )
 
 testComment(
     'makes comment if issue has template-not-used',
     defaultCommentConfig.templateNotUsedLabel,
-    `not-used\nbaz\n${defaultCommentConfig.daysUntilClose} days\n<details><summary>Foo</summary>\n\n\`\`\`\nBar\n\`\`\`\n</details>`,
+    `not-used\nbaz\n${defaultCommentConfig.daysUntilClose} days\n<details><summary>Foo</summary>\n\n\`\`\`\nBar\n\`\`\`\n</details>\n\n<!--action-template-->`,
+    (mock) => {
+        mock.expects('getIssueTemplates')
+            .once()
+            .resolves([
+                {
+                    name: 'Foo',
+                    template: 'Bar',
+                },
+            ])
+    }
+)
+
+function testNoRepeatedComments(
+    title: string,
+    labelName: string,
+    commentBody: string,
+    f?: (mock: sinon.SinonMock) => void,
+    config: Config = defaultCommentConfig
+) {
+    test(title, async (t) => {
+        const issue = getIssue()
+
+        const processor = new Processor(config, octokitPlaceholder, repo, {
+            issue,
+            labelName,
+        })
+
+        const mock = sinon.mock(processor)
+
+        mock.expects('getAuthorLogin')
+            .once()
+            .withExactArgs(issue)
+            .resolves('baz')
+
+        mock.expects('listComments')
+            .withExactArgs(issue, 1)
+            .once()
+            .resolves([
+                {
+                    body: commentBody,
+                    user: { login: 'github-actions' },
+                },
+            ])
+
+        mock.expects('listComments').withExactArgs(issue, 2).once().resolves([])
+
+        mock.expects('createComment').never()
+
+        f?.(mock)
+
+        await processor.run()
+
+        mock.verify()
+        t.pass()
+    })
+}
+
+testNoRepeatedComments(
+    "doesn't create comment when previous comment has same content with issue labeled doesnt-follow-template",
+    defaultCommentConfig.doesntFollowTemplateLabel,
+    `doesnt-follow\nbaz\n${defaultCommentConfig.daysUntilClose} days\n\n<!--action-template-->`
+)
+
+testNoRepeatedComments(
+    "doesn't create comment when previous comment has same content with issue labeled template-not-used",
+    defaultCommentConfig.templateNotUsedLabel,
+    `not-used\nbaz\n${defaultCommentConfig.daysUntilClose} days\n<details><summary>Foo</summary>\n\n\`\`\`\nBar\n\`\`\`\n</details>\n\n<!--action-template-->`,
     (mock) => {
         mock.expects('getIssueTemplates')
             .once()

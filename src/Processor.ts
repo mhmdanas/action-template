@@ -10,6 +10,7 @@ import type {
     Payload,
     Repo,
     Template,
+    Comment,
 } from './types'
 import { getURLContent } from './utils/https'
 import * as yaml from 'js-yaml'
@@ -55,6 +56,8 @@ function getConfig(): Config {
     }
 }
 
+const commentIdentifier = '<!--action-template-->'
+
 export class Processor {
     private readonly config: Config
 
@@ -88,6 +91,15 @@ export class Processor {
                 labelName: context.payload.label.name,
             }
         }
+    }
+
+    async listComments(issue: Issue, page: number): Promise<Comment[]> {
+        return (
+            await this.octokit.issues.listComments({
+                ...issue,
+                page,
+            })
+        ).data
     }
 
     async createComment(issue: Issue, body: string): Promise<void> {
@@ -300,7 +312,11 @@ export class Processor {
 
         string = string.replace('{daysUntilClose}', daysUntilCloseString)
 
-        return string
+        return string.trim()
+    }
+
+    private addCommentIdentifier(commentBody: string): string {
+        return `${commentBody}\n\n${commentIdentifier}`
     }
 
     async run(): Promise<void> {
@@ -352,10 +368,31 @@ export class Processor {
                         return
                 }
 
-                await this.createComment(
-                    issue,
+                const commentBody = this.addCommentIdentifier(
                     await this.interpolateValues(commentBodyTemplate, issue)
                 )
+
+                let foundComment: Comment | undefined
+
+                for (let page = 1; ; page++) {
+                    const comments = await this.listComments(issue, page)
+
+                    if (comments.length === 0) break
+
+                    for (const comment of comments) {
+                        if (
+                            comment.user?.login === 'github-actions' &&
+                            (comment.body?.endsWith(commentIdentifier) ?? true)
+                        ) {
+                            foundComment = comment
+                        }
+                    }
+                }
+
+                if (foundComment?.body !== commentBody) {
+                    await this.createComment(issue, commentBody)
+                }
+
                 break
             }
         }
