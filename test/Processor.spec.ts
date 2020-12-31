@@ -134,7 +134,7 @@ function testNoRepeatedComments(
             .resolves([
                 {
                     body: commentBody,
-                    user: { login: 'github-actions' },
+                    user: { login: 'github-actions[bot]' },
                 },
             ])
 

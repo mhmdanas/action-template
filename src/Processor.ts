@@ -381,7 +381,7 @@ export class Processor {
 
                     for (const comment of comments) {
                         if (
-                            comment.user?.login === 'github-actions' &&
+                            comment.user?.login === 'github-actions[bot]' &&
                             (comment.body?.endsWith(commentIdentifier) ?? true)
                         ) {
                             foundComment = comment
