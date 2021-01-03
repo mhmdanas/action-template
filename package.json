@@ -4,7 +4,7 @@
   "author": "Mohammed Anas",
   "license": "MIT",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "src/index.ts",
   "scripts": {
     "build": "ncc build src/index.ts -o dist --minify --target es2015",
