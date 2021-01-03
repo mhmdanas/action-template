@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="./js-yaml.d.ts" />
+
 import * as core from '@actions/core'
 import { getOctokit } from '@actions/github'
 import { context } from '@actions/github/lib/utils'
@@ -153,7 +156,7 @@ export class Processor {
 
         yamlLines = yamlLines.slice(1, yamlLines.length - 2)
 
-        const templateYaml = yaml.safeLoad(yamlLines.join('\n'))
+        const templateYaml = yaml.load(yamlLines.join('\n'))
 
         if (typeof templateYaml !== 'object') {
             throw Error('Expected template YAML frontmatter to be object')
